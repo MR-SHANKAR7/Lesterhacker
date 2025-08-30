@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الاستمارات الإلكترونية</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .description {
+            font-size: 1.2rem;
+            color: #555;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-container, .admin-panel {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .section-title {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+            position: relative;
+            padding-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-left: 10px;
+            color: var(--primary-color);
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            bottom: -5px;
+            width: 50px;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+        
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        input[type="tel"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #f9f9f9;
+        }
+        
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background: #fff;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+        
+        .checkbox-group input {
+            margin-left: 10px;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-color);
+            color: white;
+            padding: 14px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn i {
+            margin-left: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-submit {
+            background: var(--success-color);
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            margin-top: 1rem;
+        }
+        
+        .btn-submit:hover {
+            background: #27ae60;
+        }
+        
+        .admin-panel h2 {
+            color: var(--secondary-color);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        #submissionsList {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        
+        .submission-item {
+            padding: 1.2rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #ffffff, #f8f9fa);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s;
+        }
+        
+        .submission-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .submission-item h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .submission-item h3 i {
+            margin-left: 10px;
+        }
+        
+        .submission-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .detail-item {
+            margin-bottom: 0.8rem;
+            padding: 8px;
+            background: #f1f8ff;
+            border-radius: 6px;
+        }
+        
+        .detail-item strong {
+            display: inline-block;
+            width: 130px;
+            color: #2c3e50;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 1.2rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-download {
+            background: var(--secondary-color);
+        }
+        
+        .btn-download:hover {
+            background: #1e2a3a;
+        }
+        
+        .btn-delete {
+            background: var(--accent-color);
+        }
+        
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+        
+        .btn-clear-all {
+            background: var(--warning-color);
+            margin-top: 1rem;
+            width: 100%;
+        }
+        
+        .btn-clear-all:hover {
+            background: #e67e22;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 2rem;
+            color: #777;
+            font-style: italic;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            color: white;
+            font-size: 1.1rem;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: var(--success-color);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .admin-controls {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .stat-item {
+            padding: 10px 15px;
+            background: #e8f4ff;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 80px;
+        }
+        
+        .stat-item span {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-file-alt"></i> نظام الاستمارات الإلكترونية</h1>
+            <p class="description">يرجى ملء جميع الحقول أدناه للمشاركة في برنامجنا. البيانات المرسلة ستكون متاحة للمسؤولين فقط.</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="form-container">
+                <form id="applicationForm">
+                    <div class="form-section">
+                        <h2 class="section-title"><i class="fas fa-user"></i> المعلومات الشخصية</h2>
+                        
+                        <div class="form-group">
+                            <label for="realName">الاسم الحقيقي *</label>
+                            <input type="text" id="realName" name="realName" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fieldName">اسم المجال *</label>
+                            <input type="text" id="fieldName" name="fieldName" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="age">العمر *</label>
+                            <input type="number" id="age" name="age" min="16" max="100" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="country">الدولة *</label>
+                            <input type="text" id="country" name="country" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h2 class="section-title"><i class="fas fa-phone"></i> معلومات التواصل</h2>
+                        
+                        <div class="form-group">
+                            <label for="goal">ما هو هدفك في الانضمام للمجموعة *</label>
+                            <textarea id="goal" name="goal" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">رقم التواصل الرئيسي *</label>
+                            <input type="tel" id="phone" name="phone" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="backupPhone">رقم احتياطي للطوارئ *</label>
+                            <input type="tel" id="backupPhone" name="backupPhone" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h2 class="section-title"><i class="fas fa-laptop-code"></i> المعلومات التقنية</h2>
+                        
+                        <div class="form-group">
+                            <label>هل تملك حاسوبًا وإنترنت جيدًا؟ *</label>
+                            <div class="checkbox-group">
+                                <input type="radio" id="hasPcYes" name="hasPc" value="نعم" required>
+                                <label for="hasPcYes" style="display: inline;">نعم</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="radio" id="hasPcNo" name="hasPc" value="لا">
+                                <label for="hasPcNo" style="display: inline;">لا</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="osSystem">أي نظام تشغيل تستخدم؟ *</label>
+                            <select id="osSystem" name="osSystem" required>
+                                <option value="">اختر نظام التشغيل</option>
+                                <option value="Windows">Windows</option>
+                                <option value="Linux">Linux</option>
+                                <option value="MacOS">MacOS</option>
+                                <option value="أخرى">أخرى</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="programmingLanguages">اللغات البرمجية التي تتقنها *</label>
+                            <textarea id="programmingLanguages" name="programmingLanguages" rows="3" required placeholder="مثل: JavaScript, Python, PHP..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="skills">ماذا يمكنك القيام به في المجال؟ *</label>
+                            <textarea id="skills" name="skills" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h2 class="section-title"><i class="fas fa-shield-alt"></i> المعرفة الأمنية</h2>
+                        
+                        <div class="form-group">
+                            <label>هل تعرف استغلال الثغرات بشكل جيد؟ *</label>
+                            <div class="checkbox-group">
+                                <input type="radio" id="exploitYes" name="exploitKnowledge" value="نعم" required>
+                                <label for="exploitYes" style="display: inline;">نعم</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="radio" id="exploitNo" name="exploitKnowledge" value="لا">
+                                <label for="exploitNo" style="display: inline;">لا</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="xssKnowledge">مستوى معرفتك في ثغرة XSS *</label>
+                            <select id="xssKnowledge" name="xssKnowledge" required>
+                                <option value="">اختر مستوى معرفتك</option>
+                                <option value="مبتدئ">مبتدئ</option>
+                                <option value="متوسط">متوسط</option>
+                                <option value="متقدم">متقدم</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sqlKnowledge">مستوى معرفتك في ثغرة SQL Injection *</label>
+                            <select id="sqlKnowledge" name="sqlKnowledge" required>
+                                <option value="">اختر مستوى معرفتك</option>
+                                <option value="مبتدئ">مبتدئ</option>
+                                <option value="متوسط">متوسط</option>
+                                <option value="متقدم">متقدم</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-submit"><i class="fas fa-paper-plane"></i> إرسال الاستمارة</button>
+                </form>
+            </div>
+            
+            <div class="admin-panel" id="adminPanel">
+                <h2><i class="fas fa-cogs"></i> لوحة الإدارة - الاستمارات المستلمة</h2>
+                
+                <div class="admin-controls">
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span id="totalSubmissions">0</span>
+                            <small>إجمالي الاستمارات</small>
+                        </div>
+                        <div class="stat-item">
+                            <span id="todaySubmissions">0</span>
+                            <small>اليوم</small>
+                        </div>
+                    </div>
+                    <button class="btn btn-download" onclick="exportAllPDF()"><i class="fas fa-download"></i> تصدير الكل</button>
+                </div>
+                
+                <div id="submissionsList" class="submissions-list">
+                    <div class="empty-message">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; color: #ccc;"></i>
+                        <p>لا توجد استمارات مرفوعة حتى الآن</p>
+                    </div>
+                </div>
+                
+                <button class="btn btn-clear-all" onclick="clearAllSubmissions()"><i class="fas fa-trash"></i> حذف جميع الاستمارات</button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 نظام الاستمارات الإلكترونية. جميع الحقوق محفوظة.</p>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification">تم إرسال الاستمارة بنجاح!</div>
+
+    <script>
+        // كائن jsPDF متاح globally بعد تحميل المكتبة
+        const { jsPDF } = window.jspdf;
+        
+        // تخزين الاستمارات
+        let submissions = JSON.parse(localStorage.getItem('formSubmissions')) || [];
+        
+        // عرض الاستمارات إذا كان هناك بيانات مخزنة
+        document.addEventListener('DOMContentLoaded', function() {
+            if (submissions.length > 0) {
+                renderSubmissions();
+                updateStats();
+            }
+        });
+        
+        // إرسال الاستمارة
+        document.getElementById('applicationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // جمع البيانات من النموذج
+            const formData = {
+                realName: document.getElementById('realName').value,
+                fieldName: document.getElementById('fieldName').value,
+                age: document.getElementById('age').value,
+                country: document.getElementById('country').value,
+                goal: document.getElementById('goal').value,
+                phone: document.getElementById('phone').value,
+                backupPhone: document.getElementById('backupPhone').value,
+                hasPc: document.querySelector('input[name="hasPc"]:checked').value,
+                osSystem: document.getElementById('osSystem').value,
+                programmingLanguages: document.getElementById('programmingLanguages').value,
+                skills: document.getElementById('skills').value,
+                exploitKnowledge: document.querySelector('input[name="exploitKnowledge"]:checked').value,
+                xssKnowledge: document.getElementById('xssKnowledge').value,
+                sqlKnowledge: document.getElementById('sqlKnowledge').value,
+                submissionDate: new Date().toLocaleString('ar-SA'),
+                submissionTimestamp: new Date().getTime()
+            };
+            
+            // إضافة إلى التخزين المحلي
+            submissions.push(formData);
+            localStorage.setItem('formSubmissions', JSON.stringify(submissions));
+            
+            // عرض الاستمارات
+            renderSubmissions();
+            updateStats();
+            
+            // إعادة تعيين النموذج
+            this.reset();
+            
+            // عرض إشعار
+            showNotification('تم إرسال استمارتك بنجاح!');
+        });
+        
+        // عرض الاستمارات المستلمة
+        function renderSubmissions() {
+            const submissionsList = document.getElementById('submissionsList');
+            
+            if (submissions.length === 0) {
+                submissionsList.innerHTML = `
+                    <div class="empty-message">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; color: #ccc;"></i>
+                        <p>لا توجد استمارات مرفوعة حتى الآن</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            submissionsList.innerHTML = '';
+            
+            // ترتيب الاستمارات من الأحدث إلى الأقدم
+            const sortedSubmissions = [...submissions].sort((a, b) => b.submissionTimestamp - a.submissionTimestamp);
+            
+            sortedSubmissions.forEach((submission, index) => {
+                const submissionElement = document.createElement('div');
+                submissionElement.className = 'submission-item';
+                submissionElement.innerHTML = `
+                    <h3><i class="fas fa-user"></i> ${submission.realName}</h3>
+                    <p><strong>تاريخ التقديم:</strong> ${submission.submissionDate}</p>
+                    
+                    <div class="submission-details">
+                        <div class="detail-item"><strong>المجال:</strong> ${submission.fieldName}</div>
+                        <div class="detail-item"><strong>العمر:</strong> ${submission.age}</div>
+                        <div class="detail-item"><strong>الدولة:</strong> ${submission.country}</div>
+                        <div class="detail-item"><strong>الهاتف:</strong> ${submission.phone}</div>
+                        <div class="detail-item"><strong>هاتف احتياطي:</strong> ${submission.backupPhone}</div>
+                        <div class="detail-item"><strong>يملك حاسوب:</strong> ${submission.hasPc}</div>
+                        <div class="detail-item"><strong>نظام التشغيل:</strong> ${submission.osSystem}</div>
+                    </div>
+                    
+                    <div class="detail-item"><strong>الهدف من الانضمام:</strong> ${submission.goal}</div>
+                    <div class="detail-item"><strong>اللغات البرمجية:</strong> ${submission.programmingLanguages}</div>
+                    <div class="detail-item"><strong>المهارات:</strong> ${submission.skills}</div>
+                    <div class="detail-item"><strong>يعرف استغلال الثغرات:</strong> ${submission.exploitKnowledge}</div>
+                    <div class="detail-item"><strong>معرفة XSS:</strong> ${submission.xssKnowledge}</div>
+                    <div class="detail-item"><strong>معرفة SQL Injection:</strong> ${submission.sqlKnowledge}</div>
+                    
+                    <div class="actions">
+                        <button class="btn btn-download" onclick="generatePDF(${index})"><i class="fas fa-download"></i> تحميل PDF</button>
+                        <button class="btn btn-delete" onclick="deleteSubmission(${index})"><i class="fas fa-trash"></i> حذف</button>
+                    </div>
+                `;
+                
+                submissionsList.appendChild(submissionElement);
+            });
+        }
+        
+        // تحديث الإحصائيات
+        function updateStats() {
+            document.getElementById('totalSubmissions').textContent = submissions.length;
+            
+            // حساب عدد الاستمارات المقدمة اليوم
+            const today = new Date().toDateString();
+            const todaySubmissions = submissions.filter(sub => {
+                return new Date(sub.submissionTimestamp).toDateString() === today;
+            }).length;
+            
+            document.getElementById('todaySubmissions').textContent = todaySubmissions;
+        }
+        
+        // إنشاء PDF من الاستمارة
+        function generatePDF(index) {
+            const submission = submissions[index];
+            const doc = new jsPDF();
+            
+            // إضافة محتوى PDF
+            doc.setFontSize(20);
+            doc.text('استمارة تقديم', 105, 15, { align: 'center' });
+            
+            doc.setFontSize(12);
+            let y = 30;
+            
+            doc.setFillColor(240, 240, 240);
+            doc.rect(10, y, 190, 10, 'F');
+            doc.text(`المعلومات الشخصية - ${submission.realName}`, 105, y + 7, { align: 'center' });
+            y += 15;
+            
+            doc.text(`الاسم الكامل: ${submission.realName}`, 14, y);
+            y += 8;
+            doc.text(`المجال: ${submission.fieldName}`, 14, y);
+            y += 8;
+            doc.text(`العمر: ${submission.age}`, 14, y);
+            y += 8;
+            doc.text(`الدولة: ${submission.country}`, 14, y);
+            y += 15;
+            
+            doc.rect(10, y, 190, 10, 'F');
+            doc.text('معلومات التواصل', 105, y + 7, { align: 'center' });
+            y += 15;
+            
+            doc.text(`الهدف من الانضمام: ${submission.goal}`, 14, y);
+            y += 8;
+            doc.text(`رقم الهاتف: ${submission.phone}`, 14, y);
+            y += 8;
+            doc.text(`رقم الطوارئ: ${submission.backupPhone}`, 14, y);
+            y += 15;
+            
+            doc.rect(10, y, 190, 10, 'F');
+            doc.text('المعلومات التقنية', 105, y + 7, { align: 'center' });
+            y += 15;
+            
+            doc.text(`يملك حاسوب وإنترنت: ${submission.hasPc}`, 14, y);
+            y += 8;
+            doc.text(`نظام التشغيل: ${submission.osSystem}`, 14, y);
+            y += 8;
+            doc.text(`اللغات البرمجية: ${submission.programmingLanguages}`, 14, y);
+            y += 8;
+            doc.text(`المهارات: ${submission.skills}`, 14, y);
+            y += 15;
+            
+            doc.rect(10, y, 190, 10, 'F');
+            doc.text('المعرفة الأمنية', 105, y + 7, { align: 'center' });
+            y += 15;
+            
+            doc.text(`يعرف استغلال الثغرات: ${submission.exploitKnowledge}`, 14, y);
+            y += 8;
+            doc.text(`معرفة XSS: ${submission.xssKnowledge}`, 14, y);
+            y += 8;
+            doc.text(`معرفة SQL Injection: ${submission.sqlKnowledge}`, 14, y);
+            y += 8;
+            
+            doc.text(`تاريخ التقديم: ${submission.submissionDate}`, 14, 280);
+            
+            // حفظ PDF باسم المستخدم
+            doc.save(`استمارة_${submission.realName}.pdf`);
+        }
+        
+        // تصدير جميع الاستمارات كملف PDF واحد
+        function exportAllPDF() {
+            if (submissions.length === 0) {
+                showNotification('لا توجد استمارات لتصديرها');
+                return;
+            }
+            
+            const doc = new jsPDF();
+            let y = 20;
+            let currentPage = 1;
+            const maxPageHeight = 270;
+            
+            doc.setFontSize(16);
+            doc.text('جميع الاستمارات المقدمة', 105, 15, { align: 'center' });
+            
+            doc.setFontSize(10);
+            
+            submissions.forEach((submission, index) => {
+                // التحقق إذا كانت الصفحة الحالية ممتلئة
+                if (y > maxPageHeight) {
+                    doc.addPage();
+                    y = 20;
+                    currentPage++;
+                }
+                
+                doc.setFillColor(240, 240, 240);
+                doc.rect(10, y, 190, 10, 'F');
+                doc.text(`الاستمارة ${index + 1} - ${submission.realName}`, 105, y + 7, { align: 'center' });
+                y += 15;
+                
+                doc.text(`الاسم الكامل: ${submission.realName}`, 14, y);
+                y += 7;
+                doc.text(`المجال: ${submission.fieldName}`, 14, y);
+                y += 7;
+                doc.text(`العمر: ${submission.age}`, 14, y);
+                y += 7;
+                doc.text(`الدولة: ${submission.country}`, 14, y);
+                y += 7;
+                doc.text(`رقم الهاتف: ${submission.phone}`, 14, y);
+                y += 7;
+                doc.text(`نظام التشغيل: ${submission.osSystem}`, 14, y);
+                y += 10;
+                
+                // التحقق مرة أخرى بعد إضافة المحتوى
+                if (y > maxPageHeight) {
+                    doc.addPage();
+                    y = 20;
+                    currentPage++;
+                }
+            });
+            
+            doc.save('جميع_الاستمارات.pdf');
+            showNotification('تم تصدير جميع الاستمارات بنجاح');
+        }
+        
+        // حذف استمارة
+        function deleteSubmission(index) {
+            if (confirm('هل أنت متأكد من أنك تريد حذف هذه الاستمارة؟')) {
+                submissions.splice(index, 1);
+                localStorage.setItem('formSubmissions', JSON.stringify(submissions));
+                renderSubmissions();
+                updateStats();
+                showNotification('تم حذف الاستمارة بنجاح');
+            }
+        }
+        
+        // حذف جميع الاستمارات
+        function clearAllSubmissions() {
+            if (submissions.length === 0) {
+                showNotification('لا توجد استمارات لحذفها');
+                return;
+            }
+            
+            if (confirm('هل أنت متأكد من أنك تريد حذف جميع الاستمارات؟ لا يمكن التراجع عن هذا الإجراء.')) {
+                submissions = [];
+                localStorage.removeItem('formSubmissions');
+                renderSubmissions();
+                updateStats();
+                showNotification('تم حذف جميع الاستمارات بنجاح');
+            }
+        }
+        
+        // عرض الإشعار
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
